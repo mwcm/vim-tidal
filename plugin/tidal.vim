@@ -150,8 +150,8 @@ let s:tidal_term_sc = -1
 " =====================================
 function! s:TerminalOpen()
   if has('nvim')
-    let current_win = winnr()
-    let current_height = winheight(0)  " Store current window height
+    let current_buf = bufnr('%')  " Store buffer number instead of window number
+    let current_height = winheight(0)
     
     if s:tidal_term_ghci == -1
         if g:tidal_split_direction == 'below'
@@ -160,23 +160,16 @@ function! s:TerminalOpen()
         elseif g:tidal_split_direction == 'right'
             :exe "set splitright"
             execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
-            " Resize to match original window height
             execute "resize " . current_height
         elseif g:tidal_split_direction == 'left'
-            :exe "set nosplitright"
             execute "leftabove vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
-            " Resize to match original window height
             execute "resize " . current_height
-            wincmd x
         endif
         
         let s:tidal_term_ghci = b:terminal_job_id
-        " Give tidal a moment to start up so following commands can take effect
         sleep 500m
-        " Make terminal scroll to follow output
         :exe "normal G"
         
-        " Set terminal height for below split only
         if g:tidal_split_direction == 'below'
             :exe "normal 10\<c-w>_"
         endif
@@ -186,21 +179,22 @@ function! s:TerminalOpen()
         if g:tidal_split_direction == 'below'
             execute "vsplit term://" . g:tidal_sc_boot_cmd
         else
-            " If main terminal is on the side, put SC below it
             execute "split term://" . g:tidal_sc_boot_cmd
         endif
         let s:tidal_term_sc = b:terminal_job_id
-        " Make terminal scroll to follow output
         :exe "normal G"
     endif
-    execute current_win .. "wincmd w"
+    
+    " Find and switch to the window containing our original buffer
+    let target_win = bufwinnr(current_buf)
+    if target_win != -1
+        execute target_win .. "wincmd w"
+    endif
     
   elseif has('terminal')
-    " Keep track of the current window number so we can switch back.
-    let current_win = winnr()
-    let current_height = winheight(0)  " Store current window height
+    let current_buf = bufnr('%')  " Store buffer number instead of window number
+    let current_height = winheight(0)
     
-    " Open a Terminal with GHCI with tidal booted.
     if s:tidal_term_ghci == -1
       if g:tidal_split_direction == 'below'
         execute "below split"
@@ -229,7 +223,6 @@ function! s:TerminalOpen()
       endif
     endif
     
-    " Open a terminal with supercollider running.
     if g:tidal_sc_enable == 1 && s:tidal_term_sc == -1
       if g:tidal_split_direction == 'below'
         execute "vert split"
@@ -243,25 +236,13 @@ function! s:TerminalOpen()
            \ curwin: 1,
            \ })
     endif
-    " Return focus to the original window.
-    execute current_win .. "wincmd w"
+    
+    " Find and switch to the window containing our original buffer
+    let target_win = bufwinnr(current_buf)
+    if target_win != -1
+        execute target_win .. "wincmd w"
+    endif
   endif
-endfunction
-
-function! s:TerminalSend(config, text)
-  call s:TerminalOpen()
-  if has('nvim')
-    call jobsend(s:tidal_term_ghci, a:text . "\<CR>")
-  elseif has('terminal')
-    call term_sendkeys(s:tidal_term_ghci, a:text . "\<CR>")
-  endif
-endfunction
-
-" These two are unnecessary AFAIK.
-function! s:TerminalPaneNames(A,L,P)
-endfunction
-
-function! s:TerminalConfig() abort
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
