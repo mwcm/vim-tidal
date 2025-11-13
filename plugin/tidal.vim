@@ -163,10 +163,11 @@ function! s:TerminalOpen()
             " Resize to match original window height
             execute "resize " . current_height
         elseif g:tidal_split_direction == 'left'
-            :exe "set nosplitright"
-            execute "leftabove vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+            :exe "set splitright"
+            execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
             " Resize to match original window height
             execute "resize " . current_height
+            wincmd H
         endif
         
         let s:tidal_term_ghci = b:terminal_job_id
