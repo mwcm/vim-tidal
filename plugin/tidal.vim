@@ -99,7 +99,7 @@ if !exists("g:tidal_sc_boot_cmd")
 endif
 
 if !exists('g:tidal_split_direction')
-  let g:tidal_split_direction = 'below'
+  let g:tidal_split_direction = 'below' " below, left, right
 endif
 
 if filereadable(s:parent_path . "/.dirt-samples")
@@ -144,11 +144,6 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let s:tidal_term_ghci = -1
 let s:tidal_term_sc = -1
-
-" Add configuration option for split direction
-if !exists('g:tidal_split_direction')
-  let g:tidal_split_direction = 'below'  " Options: 'below', 'right', 'left'
-endif
 
 " NVim and VIM8 Terminal Implementation
 " =====================================
