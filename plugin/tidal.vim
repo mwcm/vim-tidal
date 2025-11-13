@@ -139,12 +139,16 @@ function! s:TmuxConfig() abort
   endif
 endfunction
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Terminal
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let s:tidal_term_ghci = -1
 let s:tidal_term_sc = -1
+
+" Add configuration option for split direction
+if !exists('g:tidal_split_direction')
+  let g:tidal_split_direction = 'below'  " Options: 'below', 'right', 'left'
+endif
 
 " NVim and VIM8 Terminal Implementation
 " =====================================
@@ -243,6 +247,22 @@ function! s:TerminalOpen()
         execute target_win .. "wincmd w"
     endif
   endif
+endfunction
+
+function! s:TerminalSend(config, text)
+  call s:TerminalOpen()
+  if has('nvim')
+    call jobsend(s:tidal_term_ghci, a:text . "\<CR>")
+  elseif has('terminal')
+    call term_sendkeys(s:tidal_term_ghci, a:text . "\<CR>")
+  endif
+endfunction
+
+" These two are unnecessary AFAIK.
+function! s:TerminalPaneNames(A,L,P)
+endfunction
+
+function! s:TerminalConfig() abort
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
