@@ -146,11 +146,6 @@ endfunction
 let s:tidal_term_ghci = -1
 let s:tidal_term_sc = -1
 
-" Add configuration option for split direction
-if !exists('g:tidal_split_direction')
-  let g:tidal_split_direction = 'below'  " Options: 'below', 'right', 'left'
-endif
-
 " NVim and VIM8 Terminal Implementation
 " =====================================
 function! s:TerminalOpen()
