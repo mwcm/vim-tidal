@@ -98,6 +98,10 @@ if !exists("g:tidal_sc_boot_cmd")
   let g:tidal_sc_boot_cmd = g:tidal_sclang . " " . g:tidal_sc_boot
 endif
 
+if !exists('g:tidal_split_direction')
+  let g:tidal_split_direction = 'below'
+endif
+
 if filereadable(s:parent_path . "/.dirt-samples")
   let &l:dictionary .= ',' . s:parent_path . "/.dirt-samples"
 endif
