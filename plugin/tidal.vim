@@ -164,7 +164,7 @@ function! s:TerminalOpen()
             execute "resize " . current_height
         elseif g:tidal_split_direction == 'left'
             :exe "set nosplitright"
-            execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+            execute "leftabove vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
             " Resize to match original window height
             execute "resize " . current_height
         endif
