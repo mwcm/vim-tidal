@@ -139,57 +139,103 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Terminal
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
 let s:tidal_term_ghci = -1
 let s:tidal_term_sc = -1
+
+" Add configuration option for split direction
+if !exists('g:tidal_split_direction')
+  let g:tidal_split_direction = 'below'  " Options: 'below', 'right', 'left'
+endif
 
 " NVim and VIM8 Terminal Implementation
 " =====================================
 function! s:TerminalOpen()
   if has('nvim')
     let current_win = winnr()
-
+    let current_height = winheight(0)  " Store current window height
+    
     if s:tidal_term_ghci == -1
-        " force terminal split to open below current pane
-        :exe "set splitbelow"
-        execute "split term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+        if g:tidal_split_direction == 'below'
+            :exe "set splitbelow"
+            execute "split term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+        elseif g:tidal_split_direction == 'right'
+            :exe "set splitright"
+            execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+            " Resize to match original window height
+            execute "resize " . current_height
+        elseif g:tidal_split_direction == 'left'
+            :exe "set nosplitright"
+            execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
+            " Resize to match original window height
+            execute "resize " . current_height
+        endif
+        
         let s:tidal_term_ghci = b:terminal_job_id
-
         " Give tidal a moment to start up so following commands can take effect
         sleep 500m
-
         " Make terminal scroll to follow output
         :exe "normal G"
-        :exe "normal 10\<c-w>_"
+        
+        " Set terminal height for below split only
+        if g:tidal_split_direction == 'below'
+            :exe "normal 10\<c-w>_"
+        endif
     endif
-
+    
     if g:tidal_sc_enable == 1 && s:tidal_term_sc == -1
-        execute "vsplit term://" . g:tidal_sc_boot_cmd
+        if g:tidal_split_direction == 'below'
+            execute "vsplit term://" . g:tidal_sc_boot_cmd
+        else
+            " If main terminal is on the side, put SC below it
+            execute "split term://" . g:tidal_sc_boot_cmd
+        endif
         let s:tidal_term_sc = b:terminal_job_id
-
         " Make terminal scroll to follow output
         :exe "normal G"
     endif
-
     execute current_win .. "wincmd w"
+    
   elseif has('terminal')
     " Keep track of the current window number so we can switch back.
     let current_win = winnr()
-
+    let current_height = winheight(0)  " Store current window height
+    
     " Open a Terminal with GHCI with tidal booted.
     if s:tidal_term_ghci == -1
-      execute "below split"
-      let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
-            \ term_name: 'tidal',
-            \ term_rows: 10,
-            \ norestore: 1,
-            \ curwin: 1,
-            \ })
+      if g:tidal_split_direction == 'below'
+        execute "below split"
+        let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
+              \ term_name: 'tidal',
+              \ term_rows: 10,
+              \ norestore: 1,
+              \ curwin: 1,
+              \ })
+      elseif g:tidal_split_direction == 'right'
+        execute "vert rightbelow split"
+        let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
+              \ term_name: 'tidal',
+              \ term_rows: current_height,
+              \ norestore: 1,
+              \ curwin: 1,
+              \ })
+      elseif g:tidal_split_direction == 'left'
+        execute "vert leftabove split"
+        let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
+              \ term_name: 'tidal',
+              \ term_rows: current_height,
+              \ norestore: 1,
+              \ curwin: 1,
+              \ })
+      endif
     endif
-
+    
     " Open a terminal with supercollider running.
     if g:tidal_sc_enable == 1 && s:tidal_term_sc == -1
-      execute "vert split"
+      if g:tidal_split_direction == 'below'
+        execute "vert split"
+      else
+        execute "below split"
+      endif
       let s:tidal_term_sc = term_start(g:tidal_sc_boot_cmd, #{
            \ term_name: 'supercollider',
            \ term_rows: 10,
@@ -197,7 +243,6 @@ function! s:TerminalOpen()
            \ curwin: 1,
            \ })
     endif
-
     " Return focus to the original window.
     execute current_win .. "wincmd w"
   endif
@@ -215,6 +260,7 @@ endfunction
 " These two are unnecessary AFAIK.
 function! s:TerminalPaneNames(A,L,P)
 endfunction
+
 function! s:TerminalConfig() abort
 endfunction
 
