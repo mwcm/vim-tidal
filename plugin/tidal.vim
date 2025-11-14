@@ -149,8 +149,8 @@ let s:tidal_term_sc = -1
 " =====================================
 function! s:TerminalOpen()
   if has('nvim')
-    let current_buf = bufnr('%')  " Store buffer number instead of window number
-    let current_height = winheight(0)
+    let current_buf = bufnr('%')
+    let current_width = winwidth(0)
     
     if s:tidal_term_ghci == -1
         if g:tidal_split_direction == 'below'
@@ -159,10 +159,12 @@ function! s:TerminalOpen()
         elseif g:tidal_split_direction == 'right'
             :exe "set splitright"
             execute "vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
-            execute "resize " . current_height
+            " Set terminal width to 1/3, leaving main window at 2/3
+            execute "vertical resize " . (current_width / 3)
         elseif g:tidal_split_direction == 'left'
             execute "leftabove vsplit term://" . g:tidal_ghci . " -ghci-script=" . g:tidal_boot
-            execute "resize " . current_height
+            " Set terminal width to 1/3, leaving main window at 2/3  
+            execute "vertical resize " . (current_width / 3)
         endif
         
         let s:tidal_term_ghci = b:terminal_job_id
@@ -191,8 +193,8 @@ function! s:TerminalOpen()
     endif
     
   elseif has('terminal')
-    let current_buf = bufnr('%')  " Store buffer number instead of window number
-    let current_height = winheight(0)
+    let current_buf = bufnr('%')
+    let current_width = winwidth(0)
     
     if s:tidal_term_ghci == -1
       if g:tidal_split_direction == 'below'
@@ -207,7 +209,7 @@ function! s:TerminalOpen()
         execute "vert rightbelow split"
         let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
               \ term_name: 'tidal',
-              \ term_rows: current_height,
+              \ term_cols: current_width / 3,
               \ norestore: 1,
               \ curwin: 1,
               \ })
@@ -215,7 +217,7 @@ function! s:TerminalOpen()
         execute "vert leftabove split"
         let s:tidal_term_ghci = term_start((g:tidal_ghci . " -ghci-script=" . g:tidal_boot), #{
               \ term_name: 'tidal',
-              \ term_rows: current_height,
+              \ term_cols: current_width / 3,
               \ norestore: 1,
               \ curwin: 1,
               \ })
